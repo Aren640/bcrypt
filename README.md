@@ -16,7 +16,7 @@ La idea fue hacer algo simple, ordenado y que se pueda correr en Windows con un 
 ## Tecnologias
 
 - Node.js + Express
-- TypeScript (strict)
+- TypeScript
 - Prisma
 - PostgreSQL
 - bcrypt
@@ -24,7 +24,7 @@ La idea fue hacer algo simple, ordenado y que se pueda correr en Windows con un 
 - zod
 - dotenv
 
-## Estructura (resumen)
+## Estructura
 
 - `src/app.ts`: rutas y middlewares
 - `src/server.ts`: arranque del servidor
@@ -41,7 +41,7 @@ La idea fue hacer algo simple, ordenado y que se pueda correr en Windows con un 
 DATABASE_URL=postgresql://Emilio:1402556z@localhost:5433/BaseEmilio
 ```
 
-## Como ejecutar (la forma recomendada)
+## Como ejecutar
 
 Desde la raiz del proyecto:
 
@@ -53,9 +53,9 @@ Ese script hace todo esto:
 
 1. Crea `.env` si no existe.
 2. Pone la `DATABASE_URL` del ejercicio.
-3. Genera `JWT_ACCESS_SECRET` aleatorio (largo).
+3. Genera `JWT_ACCESS_SECRET` aleatorio.
 4. Instala dependencias si faltan.
-5. Ejecuta Prisma (`generate`, `deploy`, y si falla `deploy`, hace `push`).
+5. Ejecuta Prisma: `generate`, `deploy` y si falla `deploy`, hace `push`.
 6. Si `3000` esta ocupado, cambia a `3001`.
 7. Levanta el server en modo desarrollo.
 
@@ -94,11 +94,11 @@ Body:
 
 Notas:
 
-- normaliza email (`trim` + `lowercase`)
+- normaliza email: `trim` + `lowercase`
 - valida password con reglas
 - guarda solo `passwordHash`
 
-Respuesta esperada (`201`):
+Respuesta esperada:
 
 ```json
 {
@@ -142,7 +142,7 @@ Authorization: Bearer <token>
 
 Devuelve el usuario publico desde base de datos.
 
-## Pruebas rapidas (PowerShell)
+## Pruebas rapidas
 
 Si `bootstrap` te dejo el puerto en 3001, cambia el valor de `$base`.
 
@@ -162,7 +162,7 @@ $token = $login.accessToken
 # 4) me
 Invoke-RestMethod -Method GET -Uri "$base/auth/me" -Headers @{ Authorization = "Bearer $token" }
 
-# 5) login incorrecto (esperado 401)
+# 5) login incorrecto
 try {
   Invoke-RestMethod -Method POST -Uri "$base/auth/login" -ContentType "application/json" -Body '{"email":"user@example.com","password":"mal-password"}'
 } catch {
@@ -202,6 +202,6 @@ CORS_ORIGIN=*
 }
 ```
 
-## Nota
+## Cierre
 
-No busque hacer algo super grande, busque que sea claro y que funcione bien para esta parte concreta de autenticacion.
+La practica esta enfocada en autenticacion con registro, login y ruta protegida.
