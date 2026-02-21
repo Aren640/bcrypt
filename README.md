@@ -1,122 +1,86 @@
-﻿# Login con bcrypt + JWT (hecho por mi)
+﻿# Practica login con bcrypt + JWT
 
-Este proyecto lo hice para practicar inicio de sesion de forma real: registrar usuario, loguear y proteger una ruta con token.
-No quise hacerlo mega complejo, pero si dejarlo ordenado y que funcione bien.
+Esta practica la hice aparte de la otra porque esa parte todavia no la tenia hecha, entonces la separe y me concentre solo en login/registro con Node.
 
-Esta practica la hice aparte de la otra porque esa parte todavia no la tenia hecha, asi que preferi separarla y enfocarme solo en login/registro.
+La idea fue hacer algo simple, ordenado y que se pueda correr en Windows con un comando.
 
-## Que usa
+## Que incluye
 
-- Node + Express
-- TypeScript en modo strict
-- Prisma con PostgreSQL
-- bcrypt para hashear password
-- JWT para autenticacion
-- zod que usamos en el anterior ejercio para validar datos
-- dotenv para variables de entorno
+- Registro de usuario
+- Inicio de sesion
+- Ruta protegida con Bearer token
+- Password hasheada con bcrypt
+- Usuario guardado en PostgreSQL con Prisma
+- Validaciones con zod
 
-## Que hace la API
+## Tecnologias
 
-- `GET /` confirma que la API esta viva.
-- `GET /health` devuelve `{ status: "ok" }`.
-- `POST /auth/register` crea usuario.
-- `POST /auth/login` inicia sesion.
-- `GET /auth/me` devuelve el usuario autenticado (con el Bearer token).
+- Node.js + Express
+- TypeScript (strict)
+- Prisma
+- PostgreSQL
+- bcrypt
+- jsonwebtoken
+- zod
+- dotenv
 
-## Como iniciarlo rapido
+## Estructura (resumen)
 
-Lo hice para que se levante con un comando:
+- `src/app.ts`: rutas y middlewares
+- `src/server.ts`: arranque del servidor
+- `src/config/env.ts`: variables de entorno validadas
+- `src/modules/auth/*`: login/register/me
+- `src/shared/middleware/*`: auth JWT + manejo de errores
+- `src/shared/utils/*`: bcrypt y JWT
+- `prisma/schema.prisma`: modelo `User`
+- `scripts/bootstrap.ps1`: setup automatico
+
+## Datos de base de datos usados en esta practica
+
+```env
+DATABASE_URL=postgresql://Emilio:1402556z@localhost:5433/BaseEmilio
+```
+
+## Como ejecutar (la forma recomendada)
+
+Desde la raiz del proyecto:
 
 ```powershell
 npm run bootstrap
 ```
 
-Si todo va bien, te deja el server corriendo en `3000` (o `3001` si `3000` esta ocupado).
+Ese script hace todo esto:
 
-## Por que existe cada archivo (resumen real)
+1. Crea `.env` si no existe.
+2. Pone la `DATABASE_URL` del ejercicio.
+3. Genera `JWT_ACCESS_SECRET` aleatorio (largo).
+4. Instala dependencias si faltan.
+5. Ejecuta Prisma (`generate`, `deploy`, y si falla `deploy`, hace `push`).
+6. Si `3000` esta ocupado, cambia a `3001`.
+7. Levanta el server en modo desarrollo.
 
-### Raiz
+## Si quieres correrlo manual
 
-- `package.json`: scripts y dependencias. Aqui deje `bootstrap`, `dev`, `prisma:*`.
-- `.gitignore`: para no subir `.env`, `node_modules` ni `dist`.
-- `.env.example`: plantilla sin secretos para saber que variables van.
-- `tsconfig.json`: config de TS con `strict: true` porque queria evitar cosas ambiguas.
-- `README.md`: esta explicacion completa.
-
-### Prisma
-
-- `prisma/schema.prisma`: modelo `User`.
-  - `email` unico
-  - `passwordHash` (nunca password en texto plano)
-  - timestamps
-- `prisma/migrations/.../migration.sql`: migracion inicial de tabla `User`.
-
-### Scripts
-
-- `scripts/bootstrap.ps1`: el "todo en uno" para Windows.
-  Lo hice porque queria evitar pasos manuales cada vez.
-
-### src/config
-
-- `src/config/env.ts`: carga `.env` y valida variables con zod.
-  Lo puse para que, si falta una variable importante, falle al inicio y no a mitad de ejecucion.
-
-### src/shared
-
-- `src/shared/prisma/client.ts`: instancia de PrismaClient.
-- `src/shared/errors/api-error.ts`: error controlado con status code.
-- `src/shared/middleware/error.middleware.ts`: manejo centralizado de errores.
-  - zod -> 400
-  - prisma unique -> 409
-  - default -> 500
-- `src/shared/middleware/auth.middleware.ts`: valida JWT y llena `req.user`.
-- `src/shared/utils/password.util.ts`: reglas de password + hash/compare.
-- `src/shared/utils/jwt.util.ts`: firmar/verificar token.
-- `src/shared/types/express.d.ts`: extension de `Request` para tipar `req.user`.
-
-### src/modules/auth
-
-- `auth.schema.ts`: validaciones de register/login.
-- `auth.service.ts`: logica principal (BD + bcrypt + JWT).
-- `auth.controller.ts`: conecta request/response con services.
-- `auth.routes.ts`: define rutas `/auth/*`.
-
-### Entrada de app
-
-- `src/app.ts`: crea Express, middlewares y rutas.
-- `src/server.ts`: levanta el servidor en el puerto configurado.
-
-## Decisiones que tome (y por que)
-
-- Normalizar email (`trim + lowercase`): para no duplicar usuarios por mayusculas o espacios.
-- Password entre 8 y 72 con complejidad: para mantener una politica minima.
-- Guardar `passwordHash` unicamente: por seguridad basica.
-- Responder `Invalid credentials` en login: no revelar si fallo email o password.
-- JWT corto (`15m`): para no dejar sesiones larguisimas por defecto.
-- Middleware de errores unico: para que todas las respuestas de error sean consistentes.
-
-## Variables de entorno que uso
-
-```env
-PORT=3000
-NODE_ENV=development
-DATABASE_URL=postgresql://Emilio:1402556z@localhost:5433/BaseEmilio
-BCRYPT_SALT_ROUNDS=12
-JWT_ACCESS_SECRET=MINIMO_32_CARACTERES
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_ISSUER=auth-bcrypt-ejercicio
-CORS_ORIGIN=*
+```powershell
+npm install
+npm run prisma:generate
+npm run prisma:push
+npm run dev
 ```
 
-## Endpoints (con ejemplos)
+## Endpoints
 
-### GET /health
+### `GET /`
+
+Respuesta de estado general de la API.
+
+### `GET /health`
 
 ```json
 { "status": "ok" }
 ```
 
-### POST /auth/register
+### `POST /auth/register`
 
 Body:
 
@@ -127,6 +91,12 @@ Body:
   "name": "Emilio"
 }
 ```
+
+Notas:
+
+- normaliza email (`trim` + `lowercase`)
+- valida password con reglas
+- guarda solo `passwordHash`
 
 Respuesta esperada (`201`):
 
@@ -143,7 +113,7 @@ Respuesta esperada (`201`):
 }
 ```
 
-### POST /auth/login
+### `POST /auth/login`
 
 Body:
 
@@ -154,7 +124,7 @@ Body:
 }
 ```
 
-Si esta bien, devuelve el mismo formato (`user + accessToken + token`).
+Si esta bien, devuelve `user + accessToken + token`.
 
 Si falla:
 
@@ -162,7 +132,7 @@ Si falla:
 { "message": "Invalid credentials" }
 ```
 
-### GET /auth/me
+### `GET /auth/me`
 
 Header:
 
@@ -170,30 +140,29 @@ Header:
 Authorization: Bearer <token>
 ```
 
-Devuelve usuario publico desde BD.
+Devuelve el usuario publico desde base de datos.
 
 ## Pruebas rapidas (PowerShell)
+
+Si `bootstrap` te dejo el puerto en 3001, cambia el valor de `$base`.
 
 ```powershell
 $base = "http://localhost:3000"
 
-# health
+# 1) health
 Invoke-RestMethod -Method GET -Uri "$base/health"
 
-# register
+# 2) register
 Invoke-RestMethod -Method POST -Uri "$base/auth/register" -ContentType "application/json" -Body '{"email":"user@example.com","password":"Abcdef1!","name":"Emilio"}'
 
-# login
+# 3) login + guardar token
 $login = Invoke-RestMethod -Method POST -Uri "$base/auth/login" -ContentType "application/json" -Body '{"email":"user@example.com","password":"Abcdef1!"}'
 $token = $login.accessToken
 
-# me
+# 4) me
 Invoke-RestMethod -Method GET -Uri "$base/auth/me" -Headers @{ Authorization = "Bearer $token" }
-```
 
-Prueba de login incorrecto:
-
-```powershell
+# 5) login incorrecto (esperado 401)
 try {
   Invoke-RestMethod -Method POST -Uri "$base/auth/login" -ContentType "application/json" -Body '{"email":"user@example.com","password":"mal-password"}'
 } catch {
@@ -201,3 +170,38 @@ try {
   $_.ErrorDetails.Message
 }
 ```
+
+## Variables de entorno
+
+Archivo real: `.env`
+
+Plantilla: `.env.example`
+
+```env
+PORT=3000
+NODE_ENV=development
+DATABASE_URL=postgresql://Emilio:1402556z@localhost:5433/BaseEmilio
+BCRYPT_SALT_ROUNDS=12
+JWT_ACCESS_SECRET=MINIMO_32_CARACTERES
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_ISSUER=auth-bcrypt-ejercicio
+CORS_ORIGIN=*
+```
+
+## Scripts npm
+
+```json
+{
+  "dev": "tsx watch src/server.ts",
+  "build": "tsc -p tsconfig.json",
+  "start": "node dist/server.js",
+  "prisma:generate": "prisma generate",
+  "prisma:deploy": "prisma migrate deploy",
+  "prisma:push": "prisma db push",
+  "bootstrap": "powershell -ExecutionPolicy Bypass -File scripts\\bootstrap.ps1"
+}
+```
+
+## Nota
+
+No busque hacer algo super grande, busque que sea claro y que funcione bien para esta parte concreta de autenticacion.
