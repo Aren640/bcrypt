@@ -209,15 +209,6 @@ CORS_ORIGIN=*
 npm run bootstrap
 ```
 
-Si prefieres manual:
-
-```powershell
-npm install
-npm run prisma:generate
-npm run prisma:push
-npm run dev
-```
-
 Pruebas de endpoints:
 
 ```powershell
