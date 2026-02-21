@@ -202,6 +202,48 @@ CORS_ORIGIN=*
 }
 ```
 
-## Cierre
+## Comandos para ejecutar y comprobar todo
 
-La practica esta enfocada en autenticacion con registro, login y ruta protegida.
+```powershell
+# 1) Instalar y levantar todo
+npm run bootstrap
+```
+
+Si prefieres manual:
+
+```powershell
+npm install
+npm run prisma:generate
+npm run prisma:push
+npm run dev
+```
+
+Pruebas de endpoints:
+
+```powershell
+$base = "http://localhost:3000"
+
+# health
+Invoke-RestMethod -Method GET -Uri "$base/health"
+
+# register
+Invoke-RestMethod -Method POST -Uri "$base/auth/register" -ContentType "application/json" -Body '{"email":"user@example.com","password":"Abcdef1!","name":"Emilio"}'
+
+# login
+$login = Invoke-RestMethod -Method POST -Uri "$base/auth/login" -ContentType "application/json" -Body '{"email":"user@example.com","password":"Abcdef1!"}'
+$token = $login.accessToken
+
+# me
+Invoke-RestMethod -Method GET -Uri "$base/auth/me" -Headers @{ Authorization = "Bearer $token" }
+
+# login incorrecto
+try {
+  Invoke-RestMethod -Method POST -Uri "$base/auth/login" -ContentType "application/json" -Body '{"email":"user@example.com","password":"mal-password"}'
+} catch {
+  $_.Exception.Response.StatusCode.value__
+  $_.ErrorDetails.Message
+}
+
+# abrir Prisma Studio para revisar passwordHash
+npx prisma studio
+```
